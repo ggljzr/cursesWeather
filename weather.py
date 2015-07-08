@@ -62,6 +62,7 @@ def drawCityData(cityData, cityWindow):
 	winSize = cityWindow.getmaxyx()
 	headline = 'Location'
 
+	cityWindow.clear()
 	drawWindowBorder(cityWindow)
 
 	lon = "{:.4f}".format(cityData['coord']['lon'])
@@ -147,7 +148,7 @@ def getIcon(iconType):
 	if iconType == '03':
 		return icons.scatteredClouds
 	if iconType == '04':
-		return icons.brokenCloud
+		return icons.brokenClouds
 	
 	if iconType == '09' or iconType == '10':
 		return icons.rain
@@ -160,6 +161,7 @@ def getIcon(iconType):
 	if iconType == '50':
 		return icons.mist
 
+	return icons.default
 
 
 def drawCurrentData(currentData, currentWindow):
@@ -185,6 +187,7 @@ def drawCurrentData(currentData, currentWindow):
 	rightOffset = winSize[1] - len(temperature)
 	leftOffset = 1
 
+	currentWindow.clear()
 	drawWindowBorder(currentWindow)
 
 	try:
@@ -231,6 +234,7 @@ def drawForecastData(forecastData, forecastWindow):
 	dayX = (winSize[1] - daysNum * dayWidth) // 2
 	dayY = 3
 
+	forecastWindow.clear()
 	drawWindowBorder(forecastWindow)
 
 	try:
@@ -267,10 +271,27 @@ def drawDay(yPos, xPos, dayData, forecastWindow):
 	except curses.error:
 		pass
 
-def refreshWeather(cityWindow, currentWindow, forecastWindow):
+def drawInfoWindow(infoWindow, curLoc, numLoc):
+	
+	winSize = infoWindow.getmaxyx()
+	navInf = '<Prev ' + str(curLoc + 1) + '/' + str(numLoc)  + ' Next> '
+	
+	infoWindow.clear()
 
-	forecastData = loadForecast('Prague')
-	currentData = loadCurrent('Prague')
+	try:
+		infoWindow.addstr(0,1,'Weather from www.openweathermap.org', 
+				curses.A_BOLD | curses.color_pair(5))
+		infoWindow.addstr(0, winSize[1] - len(navInf), navInf,
+				curses.A_BOLD | curses.color_pair(1))
+	except:
+		pass
+
+	infoWindow.refresh()
+
+def refreshWeather(cityWindow, currentWindow, forecastWindow, infoWindow, location, curLoc, numLoc):
+
+	forecastData = loadForecast(location)
+	currentData = loadCurrent(location)
 
 	drawCityData(forecastData['city'], cityWindow)
 
@@ -278,10 +299,15 @@ def refreshWeather(cityWindow, currentWindow, forecastWindow):
 	
 	drawForecastData(forecastData, forecastWindow)
 
+	drawInfoWindow(infoWindow, curLoc, numLoc)
+
 if __name__ == '__main__':
 
 	stdscr = initCurses()
 	stdscr.refresh()
+	
+	locations = ['Prague', 'Vienna', 'Warsaw']
+	curLoc = 0
 
 	#terminal size
 	rows, columns = os.popen('stty size', 'r').read().split()
@@ -292,17 +318,28 @@ if __name__ == '__main__':
 
 	currentWindow = curses.newwin(7,columns - 15, 0, 15)
 	
-	forecastWindow = curses.newwin(rows - 7, columns, 7,0)
+	forecastWindow = curses.newwin(rows - 8, columns, 7,0)
+
+	infoWindow = curses.newwin(1, columns, rows - 1, 0)
 	
-	refreshWeather(cityWindow, currentWindow, forecastWindow)
+	refreshWeather(cityWindow, currentWindow, forecastWindow,
+			infoWindow, locations[0], 0, len(locations))
 
 	while True:
 		c = stdscr.getch()
 		if c == ord('q'):
 			break
 		if c == curses.KEY_F5:
-			refreshWeather(cityWindow, currentWindow, forecastWindow)
-
+			refreshWeather(cityWindow, currentWindow, forecastWindow,
+					infoWindow, locations[curLoc], curLoc, len(locations))
+		if c == curses.KEY_RIGHT:
+			curLoc = (curLoc + 1) % len(locations)
+			refreshWeather(cityWindow, currentWindow, forecastWindow, 
+					infoWindow, locations[curLoc], curLoc, len(locations))
+		if c == curses.KEY_LEFT:
+			curLoc = (curLoc - 1) % len(locations)
+			refreshWeather(cityWindow, currentWindow, forecastWindow,
+					infoWindow, locations[curLoc], curLoc, len(locations))
 
 	endCurses()
 
