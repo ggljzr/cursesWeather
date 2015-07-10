@@ -162,7 +162,7 @@ def getIcon(iconType):
 		return icons.mist
 
 	return icons.default
-
+	
 
 def drawCurrentData(currentData, currentWindow):
 	winSize = currentWindow.getmaxyx()
@@ -206,17 +206,18 @@ def drawCurrentData(currentData, currentWindow):
 		pass
 
 	try:
-		currentWindow.addstr(2,leftOffset, date)
-		currentWindow.addstr(3,leftOffset, curWeather)
-		currentWindow.addstr(4,leftOffset, sunrise)
-		currentWindow.addstr(5,leftOffset, sunset)
+		currentWindow.addstr(2,leftOffset + icons.iconWidth + 1, date)
+		currentWindow.addstr(3,leftOffset + icons.iconWidth + 1, curWeather)
+		currentWindow.addstr(4,leftOffset + icons.iconWidth + 1, sunrise)
+		currentWindow.addstr(5,leftOffset + icons.iconWidth + 1, sunset)
 
 	except curses.error:
 		pass
 
 	try:
 		#currentWindow.addstr(1, rightOffset - icons.iconWidth - 1, 'ikona')
-		icons.drawIcon(rightOffset - icons.iconWidth - 1,2, icon, currentWindow)
+		#icons.drawIcon(rightOffset - icons.iconWidth - 1,2, icon, currentWindow)
+		icons.drawIcon(leftOffset, 2, icon, currentWindow)
 	except curses.error:
 		pass
 
