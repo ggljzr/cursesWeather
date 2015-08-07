@@ -83,20 +83,15 @@ def drawCityData(cityData, cityWindow):
 	cityWindow.refresh()
 
 def getDateFormat(unixTime):
-	timeStruct = time.gmtime(unixTime)
-	year = str(timeStruct[0])
-	month = str(timeStruct[1])
-	day = str(timeStruct[2])
-
-	return year + '-' + month + '-' + day
+	timeStruct = time.localtime(unixTime)
+	dateString = time.strftime('%Y-%m-%d', timeStruct)
+	return dateString
 
 def getTimeFormat(unixTime):
-	timeStruct = time.gmtime(unixTime)
-	hour = str(timeStruct[3]).zfill(2)
-	minute = str(timeStruct[4]).zfill(2)
-	sec = str(timeStruct[5]).zfill(2)
+	timeStruct = time.localtime(unixTime)
+	timeString = time.strftime('%H:%M:%S', timeStruct)
 
-	return hour + ':' + minute + ':' + sec
+	return timeString
 
 def drawHLine(row, col, length, window, color):
 	for i in range(col, col + length):
@@ -137,7 +132,7 @@ def drawWindowBorder(window):
 
 	drawVLineCorners(0, winSize[1]-1, winSize[0], window, 1, True)
 	drawVLineCorners(0,0,winSize[0], window, 1, False)
-
+	
 
 def getIcon(iconType):
 	iconType = iconType[:2]
