@@ -2,7 +2,7 @@
 
 import curses
 import locale
-import os
+import subprocess
 import time
 
 import urllib2
@@ -306,7 +306,7 @@ if __name__ == '__main__':
 	curLoc = 0
 
 	#terminal size
-	rows, columns = os.popen('stty size', 'r').read().split()
+	rows, columns = subprocess.check_output(['stty', 'size']).split()
 	rows = int(rows) 
 	columns = int(columns)
 
