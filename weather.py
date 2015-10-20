@@ -4,22 +4,39 @@ import curses
 import locale
 import subprocess
 import time
+import sys
 
 import urllib2
 import json
 import icons
 
-def loadForecast(city):
-	response = urllib2.urlopen('http://api.openweathermap.org/data/2.5/forecast?q=' + str(city) +
-			'&units=metric')
+import pytoml as toml
+
+def loadForecast(city, key):
+	#primitive error handling
+	try:
+		response = urllib2.urlopen('http://api.openweathermap.org/data/2.5/forecast?q=' + str(city) +
+					   '&units=metric&APPID=' + str(key))
+	#exit curses clealy before rising an exception
+	except urllib2.URLError:
+		endCurses()
+		print "urllib2.URLError raised"
+		sys.exit()
+
 	rawData = response.read()
 	jsonData = json.loads(rawData)
 
 	return jsonData
 
-def loadCurrent(city):
-	response = urllib2.urlopen('http://api.openweathermap.org/data/2.5/weather?q=' + str(city) + 
-			'&units=metric')
+def loadCurrent(city, key):
+	try:
+		response = urllib2.urlopen('http://api.openweathermap.org/data/2.5/weather?q=' + str(city) + 
+					   '&units=metric&APPID=' + str(key))
+	except urllib2.URLError:
+		endCurses()
+		print "urllib2.URLError raised"
+		sys.exit()
+
 	rawData = response.read()
 	jsonData = json.loads(rawData)
 
@@ -284,10 +301,11 @@ def drawInfoWindow(infoWindow, curLoc, numLoc):
 
 	infoWindow.refresh()
 
-def refreshWeather(cityWindow, currentWindow, forecastWindow, infoWindow, location, curLoc, numLoc):
+#maybe use some global variables next time
+def refreshWeather(cityWindow, currentWindow, forecastWindow, infoWindow, location, curLoc, numLoc, key):
 
-	forecastData = loadForecast(location)
-	currentData = loadCurrent(location)
+	forecastData = loadForecast(location, key)
+	currentData = loadCurrent(location, key)
 
 	drawCityData(forecastData['city'], cityWindow)
 
@@ -301,9 +319,19 @@ if __name__ == '__main__':
 
 	stdscr = initCurses()
 	stdscr.refresh()
-	
-	locations = ['Prague', 'Vienna', 'Warsaw']
+
+	#config read from config.toml file
+	config = {}
+
+	#reading config
+	with open('config.toml') as config_file:
+		config = toml.load(config_file)
+
+	#curren location
 	curLoc = 0
+	locations = config['weather']['locations']
+	
+	apiKey = config['api']['key']
 
 	#terminal size
 	rows, columns = subprocess.check_output(['stty', 'size']).split()
@@ -319,7 +347,7 @@ if __name__ == '__main__':
 	infoWindow = curses.newwin(1, columns, rows - 1, 0)
 	
 	refreshWeather(cityWindow, currentWindow, forecastWindow,
-			infoWindow, locations[0], 0, len(locations))
+			infoWindow, locations[0], 0, len(locations), apiKey)
 
 	while True:
 		c = stdscr.getch()
@@ -327,15 +355,15 @@ if __name__ == '__main__':
 			break
 		if c == curses.KEY_F5:
 			refreshWeather(cityWindow, currentWindow, forecastWindow,
-					infoWindow, locations[curLoc], curLoc, len(locations))
+					infoWindow, locations[curLoc], curLoc, len(locations), apiKey)
 		if c == curses.KEY_RIGHT:
 			curLoc = (curLoc + 1) % len(locations)
 			refreshWeather(cityWindow, currentWindow, forecastWindow, 
-					infoWindow, locations[curLoc], curLoc, len(locations))
+					infoWindow, locations[curLoc], curLoc, len(locations), apiKey)
 		if c == curses.KEY_LEFT:
 			curLoc = (curLoc - 1) % len(locations)
 			refreshWeather(cityWindow, currentWindow, forecastWindow,
-					infoWindow, locations[curLoc], curLoc, len(locations))
+					infoWindow, locations[curLoc], curLoc, len(locations), apiKey)
 
 	endCurses()
 

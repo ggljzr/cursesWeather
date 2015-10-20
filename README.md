@@ -6,4 +6,6 @@ with python curses for gui
 
 weather from openweathermap.com
 
-TODO: add api key for openweathermap api
+api key and locations is read from config.toml (see config.toml.example)
+
+TODO: desperately needs better error handling, could use some refactoring

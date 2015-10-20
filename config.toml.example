@@ -1,0 +1,5 @@
+[api]
+key = "your api key"
+
+[weather]
+locations = ['Prague', 'Vienna', 'Warsaw']
