@@ -18,9 +18,10 @@ def loadForecast(city, key):
 		response = urllib2.urlopen('http://api.openweathermap.org/data/2.5/forecast?q=' + str(city) +
 					   '&units=metric&APPID=' + str(key))
 	#exit curses clealy before rising an exception
-	except urllib2.URLError:
+	except urllib2.URLError, e:
 		endCurses()
 		print "urllib2.URLError raised"
+                print str(e)
 		sys.exit()
 
 	rawData = response.read()
@@ -32,10 +33,11 @@ def loadCurrent(city, key):
 	try:
 		response = urllib2.urlopen('http://api.openweathermap.org/data/2.5/weather?q=' + str(city) + 
 					   '&units=metric&APPID=' + str(key))
-	except urllib2.URLError:
+	except urllib2.URLError, e:
 		endCurses()
 		print "urllib2.URLError raised"
-		sys.exit()
+		print str(e)
+                sys.exit()
 
 	rawData = response.read()
 	jsonData = json.loads(rawData)
