@@ -12,6 +12,17 @@ import icons
 
 import pytoml as toml
 
+#curses color pairs
+PAIR_RED = 1
+PAIR_GREEN = 2
+PAIR_BLUE = 3
+PAIR_YELLOW = 4
+PAIR_CYAN = 5
+PAIR_WHITE = 6
+PAIR_BLACK = 7
+
+PAIR_BLACK_BLUE = 8
+
 def loadForecast(city, key):
 	#primitive error handling
 	try:
@@ -53,15 +64,15 @@ def initCurses():
 
 	#colors
 	curses.start_color()
-	curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
-	curses.init_pair(2, curses.COLOR_GREEN, curses.COLOR_BLACK)
-	curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
-	curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)
-	curses.init_pair(5, curses.COLOR_CYAN, curses.COLOR_BLACK)
-	curses.init_pair(6, curses.COLOR_WHITE, curses.COLOR_BLACK)
-	curses.init_pair(7, curses.COLOR_BLACK, curses.COLOR_BLACK)
+	curses.init_pair(PAIR_RED, curses.COLOR_RED, curses.COLOR_BLACK)
+	curses.init_pair(PAIR_GREEN, curses.COLOR_GREEN, curses.COLOR_BLACK)
+	curses.init_pair(PAIR_BLUE, curses.COLOR_BLUE, curses.COLOR_BLACK)
+	curses.init_pair(PAIR_YELLOW, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+	curses.init_pair(PAIR_CYAN, curses.COLOR_CYAN, curses.COLOR_BLACK)
+	curses.init_pair(PAIR_WHITE, curses.COLOR_WHITE, curses.COLOR_BLACK)
+	curses.init_pair(PAIR_BLACK, curses.COLOR_BLACK, curses.COLOR_BLACK)
 
-	curses.init_pair(8, curses.COLOR_BLACK, curses.COLOR_BLUE)
+	curses.init_pair(PAIR_BLACK_BLUE, curses.COLOR_BLACK, curses.COLOR_BLUE)
 
 	curses.noecho()
 	curses.cbreak()
@@ -90,10 +101,10 @@ def drawCityData(cityData, cityWindow):
 	try:
 		cityWindow.addstr(1, (winSize[1] - len(headline))//2, headline, 
 				curses.A_BOLD | curses.color_pair(3))
-		cityWindow.addstr(2,1,cityData['name'], curses.A_BOLD | curses.color_pair(1))
-		cityWindow.addstr(3,1,'Lon: ' + lon, curses.color_pair(2))
-		cityWindow.addstr(4,1,'Lat: ' + lat, curses.color_pair(2))
-		cityWindow.addstr(5,1,'Country: ' + cityData['country'], curses.color_pair(5))
+		cityWindow.addstr(2,1,cityData['name'], curses.A_BOLD | curses.color_pair(PAIR_RED))
+		cityWindow.addstr(3,1,'Lon: ' + lon, curses.color_pair(PAIR_GREEN))
+		cityWindow.addstr(4,1,'Lat: ' + lat, curses.color_pair(PAIR_GREEN))
+		cityWindow.addstr(5,1,'Country: ' + cityData['country'], curses.color_pair(PAIR_CYAN))
 
 	except curses.error:
 		pass
@@ -146,11 +157,11 @@ def drawVLineCorners(row, col, length, window, color, right):
 def drawWindowBorder(window):
 	winSize = window.getmaxyx()
 
-	drawHLine(0,0,winSize[1], window,1)
-	drawHLine(winSize[0]-1,0,winSize[1], window,1)
+	drawHLine(0,0,winSize[1], window,PAIR_RED)
+	drawHLine(winSize[0]-1,0,winSize[1], window,PAIR_RED)
 
-	drawVLineCorners(0, winSize[1]-1, winSize[0], window, 1, True)
-	drawVLineCorners(0,0,winSize[0], window, 1, False)
+	drawVLineCorners(0, winSize[1]-1, winSize[0], window, PAIR_RED, True)
+	drawVLineCorners(0,0,winSize[0], window, PAIR_RED, False)
 	
 
 def getIcon(iconType):
@@ -206,24 +217,24 @@ def drawCurrentData(currentData, currentWindow):
 
 	try:
 		currentWindow.addstr(1, (winSize[1] - len(headline))//2, headline,
-			curses.A_BOLD | curses.color_pair(3))
+			curses.A_BOLD | curses.color_pair(PAIR_BLUE))
 	except curses.error:
 		pass
 
 	try:
-		currentWindow.addstr(2,rightOffset, temperature)
-		currentWindow.addstr(3,rightOffset, pressure)
-		currentWindow.addstr(4,rightOffset, humidity)
-		currentWindow.addstr(5, rightOffset, wind)
+		currentWindow.addstr(2,rightOffset, temperature, curses.color_pair(PAIR_YELLOW))
+		currentWindow.addstr(3,rightOffset, pressure, curses.color_pair(PAIR_YELLOW))
+		currentWindow.addstr(4,rightOffset, humidity, curses.color_pair(PAIR_YELLOW))
+		currentWindow.addstr(5, rightOffset, wind, curses.color_pair(PAIR_YELLOW))
 			
 	except curses.error:
 		pass
 
 	try:
-		currentWindow.addstr(2,leftOffset + icons.iconWidth + 1, date)
-		currentWindow.addstr(3,leftOffset + icons.iconWidth + 1, curWeather)
-		currentWindow.addstr(4,leftOffset + icons.iconWidth + 1, sunrise)
-		currentWindow.addstr(5,leftOffset + icons.iconWidth + 1, sunset)
+		currentWindow.addstr(2,leftOffset + icons.iconWidth + 1, date, curses.color_pair(PAIR_CYAN))
+		currentWindow.addstr(3,leftOffset + icons.iconWidth + 1, curWeather, curses.color_pair(PAIR_CYAN))
+		currentWindow.addstr(4,leftOffset + icons.iconWidth + 1, sunrise, curses.color_pair(PAIR_CYAN))
+		currentWindow.addstr(5,leftOffset + icons.iconWidth + 1, sunset, curses.color_pair(PAIR_CYAN))
 
 	except curses.error:
 		pass
@@ -254,7 +265,7 @@ def drawForecastData(forecastData, forecastWindow):
 
 	try:
 		forecastWindow.addstr(1, (winSize[1] - len(headline))//2, headline,
-				curses.A_BOLD | curses.color_pair(3))
+				curses.A_BOLD | curses.color_pair(PAIR_BLUE))
 	
 	except curses.error:
 		pass
@@ -277,12 +288,12 @@ def drawDay(yPos, xPos, dayData, forecastWindow):
 	pressure = str(dayData['main']['pressure']) + 'hPa'
 
 	try:
-		forecastWindow.addstr(yPos, xPos, date, curses.A_BOLD | curses.color_pair(2))
-		forecastWindow.addstr(yPos + 1, xPos, time, curses.A_BOLD | curses.color_pair(4))
+		forecastWindow.addstr(yPos, xPos, date, curses.A_BOLD | curses.color_pair(PAIR_GREEN))
+		forecastWindow.addstr(yPos + 1, xPos, time, curses.A_BOLD | curses.color_pair(PAIR_YELLOW))
 		icons.drawIcon(xPos,yPos + 2, icon, forecastWindow)
-		forecastWindow.addstr(yPos + 6, xPos, temp)
-		forecastWindow.addstr(yPos + 7, xPos, humidity)
-		forecastWindow.addstr(yPos + 8, xPos, pressure)
+		forecastWindow.addstr(yPos + 6, xPos, temp, curses.color_pair(PAIR_GREEN))
+		forecastWindow.addstr(yPos + 7, xPos, humidity, curses.color_pair(PAIR_GREEN))
+		forecastWindow.addstr(yPos + 8, xPos, pressure, curses.color_pair(PAIR_GREEN))
 	except curses.error:
 		pass
 
