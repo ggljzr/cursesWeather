@@ -23,6 +23,8 @@ PAIR_BLACK = 7
 
 PAIR_BLACK_BLUE = 8
 
+MIN_ROWS = 24
+MIN_COLS = 70
 
 def loadForecast(city, key):
     # primitive error handling
@@ -111,7 +113,7 @@ def drawCityData(cityData, cityWindow):
             2, 1, cityData['name'], curses.A_BOLD | curses.color_pair(PAIR_RED))
         cityWindow.addstr(3, 1, 'Lon: ' + lon, curses.color_pair(PAIR_GREEN))
         cityWindow.addstr(4, 1, 'Lat: ' + lat, curses.color_pair(PAIR_GREEN))
-        cityWindow.addstr(5, 1, 'Country: ' +
+        cityWindow.addstr(5, 1, 'Country:  ' +
                           cityData['country'], curses.color_pair(PAIR_CYAN))
 
     except curses.error:
@@ -201,27 +203,39 @@ def getIcon(iconType):
 
     return icons.default
 
+def padEntry(entry, maxLen, separator, padChar):
+    separatorIndex = entry.index(separator) + 1
+    padding = maxLen - len(entry)
+    return entry[:separatorIndex] + (padChar * padding) + entry[separatorIndex:]
+
 
 def drawCurrentData(currentData, currentWindow):
     winSize = currentWindow.getmaxyx()
     headline = 'Current weather'
 
-    temperature = 'Temperature: ' + str(currentData['main']['temp']) + ' °C '
-    pressure = 'Pressure: ' + str(currentData['main']['pressure']) + ' hPa '
-    humidity = 'Humidity: ' + str(currentData['main']['humidity']) + ' % '
-    wind = 'Wind: ' + str(currentData['wind']['speed']) + ' m/s '
+    temperature = 'Temperature: {} C '.format(currentData['main']['temp']) 
+    pressure = 'Pressure: {} hPa '.format(currentData['main']['pressure'])
+    humidity = 'Humidity: {} % '.format(currentData['main']['humidity'])
+    wind = 'Wind: {} ms '.format(currentData['wind']['speed'])
 
     sunriseUnix = currentData['sys']['sunrise']
     sunsetUnix = currentData['sys']['sunset']
 
     sunrise = 'Sunrise: ' + getTimeFormat(sunriseUnix)
-    sunset = 'Sunset: ' + getTimeFormat(sunsetUnix)
+    sunset = 'Sunset:  ' + getTimeFormat(sunsetUnix)
     date = getDateFormat(sunsetUnix)
     curWeather = currentData['weather'][0]['description']
 
     icon = getIcon(currentData['weather'][0]['icon'])
 
-    rightOffset = winSize[1] - len(temperature)
+    maxLen = max([len(temperature),len(pressure),len(humidity),len(wind)])
+   
+    temperature = padEntry(temperature, maxLen, ':', ' ')
+    pressure = padEntry(pressure, maxLen, ':', ' ')
+    humidity = padEntry(humidity, maxLen, ':', ' ')
+    wind = padEntry(wind, maxLen, ':', ' ')
+
+    rightOffset = winSize[1] - maxLen - 1
     leftOffset = 1
 
     currentWindow.clear()
@@ -262,7 +276,7 @@ def drawCurrentData(currentData, currentWindow):
     try:
         #currentWindow.addstr(1, rightOffset - icons.iconWidth - 1, 'ikona')
         #icons.drawIcon(rightOffset - icons.iconWidth - 1,2, icon, currentWindow)
-        icons.drawIcon(leftOffset, 2, icon, currentWindow)
+        icons.drawIcon(leftOffset, 1, icon, currentWindow)
     except curses.error:
         pass
 
@@ -301,7 +315,7 @@ def drawForecastData(forecastData, forecastWindow):
 def drawDay(yPos, xPos, dayData, forecastWindow):
 
     date = getDateFormat(dayData['dt'])
-    time = getTimeFormat(dayData['dt'])
+    time = ' ' + getTimeFormat(dayData['dt'])
     icon = getIcon(dayData['weather'][0]['icon'])
 
     temp = str(dayData['main']['temp']) + ' °C'
@@ -314,11 +328,11 @@ def drawDay(yPos, xPos, dayData, forecastWindow):
         forecastWindow.addstr(yPos + 1, xPos, time,
                               curses.A_BOLD | curses.color_pair(PAIR_YELLOW))
         icons.drawIcon(xPos, yPos + 2, icon, forecastWindow)
-        forecastWindow.addstr(yPos + 6, xPos, temp,
+        forecastWindow.addstr(yPos + icons.iconHeight + 2, xPos, temp,
                               curses.color_pair(PAIR_GREEN))
-        forecastWindow.addstr(yPos + 7, xPos, humidity,
+        forecastWindow.addstr(yPos + icons.iconHeight + 3, xPos, humidity,
                               curses.color_pair(PAIR_GREEN))
-        forecastWindow.addstr(yPos + 8, xPos, pressure,
+        forecastWindow.addstr(yPos + icons.iconHeight + 4, xPos, pressure,
                               curses.color_pair(PAIR_GREEN))
     except curses.error:
         pass
@@ -359,6 +373,16 @@ def refreshWeather(cityWindow, currentWindow, forecastWindow, infoWindow, locati
 
 if __name__ == '__main__':
 
+    # terminal size
+    rows, columns = subprocess.check_output(['stty', 'size']).split()
+    rows = int(rows)
+    columns = int(columns)
+
+    if rows < MIN_ROWS or columns < MIN_COLS:
+        print "requires minimal terminal size {}x{} (yours {}x{})".format(MIN_COLS, MIN_ROWS, columns,rows)
+        sys.exit()
+
+
     stdscr = initCurses()
     stdscr.refresh()
 
@@ -375,11 +399,7 @@ if __name__ == '__main__':
 
     apiKey = config['api']['key']
 
-    # terminal size
-    rows, columns = subprocess.check_output(['stty', 'size']).split()
-    rows = int(rows)
-    columns = int(columns)
-
+    
     cityWindow = curses.newwin(7, 14, 0, 0)
 
     currentWindow = curses.newwin(7, columns - 15, 0, 15)
